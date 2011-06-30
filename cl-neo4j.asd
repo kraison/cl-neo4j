@@ -5,9 +5,9 @@
 
 (defsystem cl-neo4j
   :name "neo4j RESTful Client Interface ()"
-  :maintainer "Kevin Raison"
+  :maintainer "Mikhail Novikov <freiksenet@gmail.com>"
   :author "Kevin Raison <last name @ chatsubo dot net>"
-  :version "0.2"
+  :version "0.3"
   :description "neo4j RESTful Client Interface"
   :long-description "neo4j RESTful Client Interface."
   :depends-on (:alexandria
