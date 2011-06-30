@@ -10,16 +10,15 @@
   :version "0.2"
   :description "neo4j RESTful Client Interface"
   :long-description "neo4j RESTful Client Interface."
-  :depends-on (:drakma
-	       :cl-ppcre
-	       :cl-json)
+  :depends-on (:alexandria
+               :anaphora
+               :drakma
+               :cl-ppcre
+               :cl-json)
   :components ((:file "cl-neo4j-package")
-	       (:file "globals" :depends-on ("cl-neo4j-package"))
-	       (:file "utilities" :depends-on ("globals"))
-	       (:file "conditions" :depends-on ("utilities"))
-	       (:file "struct" :depends-on ("conditions"))
-	       (:file "neo4j" :depends-on ("conditions" "struct"))
-	       (:file "struct-methods" :depends-on ("neo4j"))))
-
-
-
+               (:file "globals" :depends-on ("cl-neo4j-package"))
+               (:file "utilities" :depends-on ("globals"))
+               (:file "conditions" :depends-on ("utilities"))
+               (:file "struct" :depends-on ("conditions"))
+               (:file "neo4j" :depends-on ("conditions" "struct"))
+               (:file "struct-methods" :depends-on ("neo4j"))))

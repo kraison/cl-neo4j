@@ -2,6 +2,8 @@
 
 (defpackage #:cl-neo4j
   (:use #:cl
+        #:alexandria
+        #:anaphora
 	#:json
 	#:json-rpc
 	#:drakma)
