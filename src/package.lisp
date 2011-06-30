@@ -7,18 +7,17 @@
 	#:json
 	#:json-rpc
 	#:drakma)
-  (:export #:do-neo4j-query
-	   #:get-node
-	   #:extract-node-id
-	   #:create-node
+  (:export #:get-node
+           #:create-node
+           #:delete-node
 	   #:set-node-properties
 	   #:get-node-properties
 	   #:del-node-properties
 	   #:set-node-property
 	   #:get-node-property
 	   #:del-node-property
-	   #:delete-node
-	   #:create-relationship
+           #:get-relationship
+           #:create-relationship
 	   #:set-relationship-properties
 	   #:get-relationship-properties
 	   #:del-relationship-properties
@@ -27,17 +26,22 @@
 	   #:del-relationship-property
 	   #:delete-relationship
 	   #:get-node-relationships
-	   #:list-indices
-	   #:add-to-index
-	   #:remove-from-index
-	   #:query-index
-	   #:traverse
+           #:get-relationships-types
+	   #:create-index
+           #:delete-index
+           #:add-to-index
+           #:remove-from-index
+           #:lookup-index
+           #:query-index
+           #:traverse
+           #:get-path
+           #:get-paths
 	   ;; Vars
 	   #:*neo4j-host*
-	   #:*neo4j-port*
-	   #:*use-structs*
-	   ;; Node struct
-	   #:neo-node?
-	   #:neo-node-self-url
-	   #:neo-node-id
-	   ))
+	   #:*neo4j-port*))
+
+(defpackage #:cl-neo4j-wrapper
+  (:use #:cl
+        #:alexandria
+        #:anaphora
+        #:cl-neo4j))

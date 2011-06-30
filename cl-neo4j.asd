@@ -23,4 +23,5 @@
              (:file "globals")
              (:file "utilities")
              (:file "conditions")
-             (:file "restapi")))))
+             (:file "restapi")
+             (:file "wrapper")))))

@@ -98,6 +98,13 @@
    (400 (error 'invalid-data-sent-error :uri uri :json json))
    (404 (error 'node-not-found-error :uri to-node-id))))
 
+(def-neo4j-fun delete-relationship (relationship-id)
+  :delete
+  (:uri-spec (format nil "relationship/~A" relationship-id))
+  (:status-handlers
+   (204 (values t body))
+   (404 (error 'relationship-not-found-error :uri uri))))
+
 (def-neo4j-fun set-relationship-properties (relationship-id properties)
   :put
   (:uri-spec (format nil "relationship/~A/properties" relationship-id))
@@ -145,13 +152,6 @@
   :delete
   (:uri-spec (format nil "relationship/~A/properties/~A"
                      relationship-id property))
-  (:status-handlers
-   (204 (values t body))
-   (404 (error 'relationship-not-found-error :uri uri))))
-
-(def-neo4j-fun delete-relationship (relationship-id)
-  :delete
-  (:uri-spec (format nil "relationship/~A" relationship-id))
   (:status-handlers
    (204 (values t body))
    (404 (error 'relationship-not-found-error :uri uri))))
