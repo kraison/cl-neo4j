@@ -37,11 +37,6 @@
                          (property condition) (uri condition))
                  (format stream "Relationship not found ~A" (uri condition))))))
 
-(define-condition index-entry-not-found-error (error)
-  ((uri :accessor uri :initarg :uri))
-  (:report (lambda (condition stream)
-             (format stream "Index entry not found ~A" (uri condition)))))
-
 (define-condition property-not-found-error (error)
   ((uri :accessor uri :initarg :uri)
    (property :accessor property :initarg :property))
@@ -50,3 +45,13 @@
                      (first (property condition))
                      (second (property condition))
                      (third (property condition))))))
+
+(define-condition index-entry-not-found-error (error)
+  ((uri :accessor uri :initarg :uri))
+  (:report (lambda (condition stream)
+             (format stream "Index entry not found ~A" (uri condition)))))
+
+(define-condition path-not-found-error (error)
+  ((uri :accessor uri :initarg :uri))
+  (:report (lambda (condition stream)
+             (format stream "No path found with current algorithm at ~A" (uri condition)))))

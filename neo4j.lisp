@@ -6,7 +6,7 @@
                  (format nil "node/~A" node-id)
                  ""))
   (:status-handlers
-   (200 (decode-json-from-string (map 'string #'code-char body)))
+   (200 (decode-neo4j-json-output body))
    (404 (error 'node-not-found-error :uri uri :property node-id))))
 
 (def-neo4j-fun create-node (properties)
@@ -14,7 +14,7 @@
   (:uri-spec (format nil "node"))
   (:encode properties :string)
   (:status-handlers
-   (201 (decode-json-from-string (map 'string #'code-char body)))
+   (201 (decode-neo4j-json-output body))
    (400 (error 'invalid-data-sent-error :uri uri :json json))))
 
 (def-neo4j-fun delete-node (node-id)
@@ -38,7 +38,7 @@
   :get
   (:uri-spec (format nil "node/~A/properties" node-id))
   (:status-handlers
-   (200 (decode-json-from-string (map 'string #'code-char body)))
+   (200 (decode-neo4j-json-output body))
    (204 nil)
    (404 (error 'node-not-found-error :uri uri))))
 
@@ -67,7 +67,7 @@
                          (string-downcase (symbol-name property))
                          property)))
   (:status-handlers
-   (200 (decode-json-from-string (map 'string #'code-char body)))
+   (200 (decode-neo4j-json-output body))
    (400 (error 'invalid-data-sent-error :uri uri :json json))
    (404 (error 'property-not-found-error :uri uri :property (list property "node" node-id)))))
 
@@ -86,7 +86,7 @@
   :get
   (:uri-spec (format nil "relationship/~A" relationship-id))
   (:status-handlers
-   (200 (decode-json-from-string (map 'string #'code-char body)))
+   (200 (decode-neo4j-json-output body))
    (404 (error 'relationship-not-found-error :uri uri))))
 
 (def-neo4j-fun create-relationship (node-id to-node-id relationship-type properties)
@@ -94,7 +94,7 @@
   (:uri-spec (format nil "node/~A/relationships" node-id))
   (:encode (list to-node-id relationship-type properties) :relationship)
   (:status-handlers
-   (201 (decode-json-from-string (map 'string #'code-char body)))
+   (201 (decode-neo4j-json-output body))
    (400 (error 'invalid-data-sent-error :uri uri :json json))
    (404 (error 'node-not-found-error :uri to-node-id))))
 
@@ -111,7 +111,7 @@
   :get
   (:uri-spec (format nil "relationship/~A/properties" relationship-id))
   (:status-handlers
-   (200 (decode-json-from-string (map 'string #'code-char body)))
+   (200 (decode-neo4j-json-output body))
    (204 nil)
    (404 (error 'relationship-not-found-error :uri uri))))
 
@@ -137,7 +137,7 @@
   (:uri-spec (format nil "relationship/~A/properties/~A"
                      relationship-id property))
   (:status-handlers
-   (200 (decode-json-from-string (map 'string #'code-char body)))
+   (200 (decode-neo4j-json-output body))
    (400 (error 'invalid-data-sent-error :uri uri :json json))
    (404 (error 'property-not-found-error :uri uri :property (list property "relationship" relationship-id)))))
 
@@ -166,43 +166,65 @@
                            (t direction))
                      types))
   (:status-handlers
-   (200 (decode-json-from-string (map 'string #'code-char body)))
+   (200 (decode-neo4j-json-output body))
    (404 (error 'node-not-found-error :uri uri))))
 
-#+nil (
-(def-neo4j-fun list-indices ()
+(def-neo4j-fun get-relationships-types ()
   :get
-  (:uri-spec (format nil "index" ))
+  (:uri-spec "relationships/types")
   (:status-handlers
-   (200 (decode-json-from-string (map 'string #'code-char body)))))
+   (200 (decode-neo4j-json-output body))))
 
-(def-neo4j-fun add-to-index (node-id key value)
+(def-neo4j-fun create-index ((type :node) name config)
   :post
-  (:encode node-id :node-url)
-  (:uri-spec (format nil "index/node/~A/~A"  key value))
+  (:uri-spec (format nil "index/~A" (string-downcase (symbol-name type))))
+  (:encode (list (cons "name" name) config) :string)
   (:status-handlers
-   (201 (values t body))))
+   (201 (decode-neo4j-json-output body))))
 
-(def-neo4j-fun remove-from-index (node-id key value)
+(def-neo4j-fun delete-index ((type :node) name)
   :delete
-  (:uri-spec (format nil "index/node/~A/~A/~A"  key value node-id))
+  (:uri-spec (format nil "index/~A/~A" (string-downcase (symbol-name type)) name))
+  (:status-handlers
+   (204 (values t body))))
+
+(def-neo4j-fun list-indexes ((type :node))
+  :get
+  (:uri-spec (format nil "index/~A" (string-downcase (symbol-name type))))
+  (:status-handlers
+   (200 (decode-neo4j-json-output body))))
+
+(def-neo4j-fun add-to-index ((type :node) name key value object-id)
+  :post
+  (:uri-spec (format nil "index/~A/~A/~A/~A" (string-downcase (symbol-name type))
+                     name key value))
+  (:encode object-id (case type
+                       (:node :node-url-single)
+                       (:relationship :relationship-url-single)))
+  (:status-handlers
+   (201 (decode-neo4j-json-output body))))
+
+(def-neo4j-fun remove-from-index ((type :node) name key value object-id)
+  :delete
+  (:uri-spec (format nil "index/~A/~A/~@[~A/~]~@[~A/~]~A" (string-downcase (symbol-name type))
+                     name key value object-id))
   (:status-handlers
    (204 (values t body))
    (404 (error 'index-entry-not-found-error :uri uri))))
 
-(def-neo4j-fun query-index (key value)
+(def-neo4j-fun lookup-index ((type :node) name key value)
   :get
-  (:uri-spec (format nil "index/node/~A/~A" key value))
+  (:uri-spec (format nil "index/~A/~A/~A/~A" (string-downcase (symbol-name type))
+                     name key value))
   (:status-handlers
-   (200 (decode-json-from-string (map 'string #'code-char body)))))
+   (200 (decode-neo4j-json-output body))))
 
-(def-neo4j-fun query-fulltext-index (key value)
+(def-neo4j-fun query-index ((type :node) name query)
   :get
-  (:uri-spec (format nil "index/node-fulltext/~A/~A"  key value))
+  (:uri-spec (format nil "index/~A/~A/?query=~A" (string-downcase (symbol-name type))
+                     name query))
   (:status-handlers
-   (200 (decode-json-from-string (map 'string #'code-char body)))))
-)
-
+   (200 (decode-neo4j-json-output body))))
 
 (def-neo4j-fun traverse (node-id (return-type :node) (max-depth 1) (order :depth-first)
                          uniqueness relationships prune-evaluator return-filter)
@@ -213,7 +235,6 @@
                   (case order
                     (:depth-first "depth_first")
                     (:breadth-first "breadth_first")))
-
             (cons "uniqueness" uniqueness)
             (cons "relationships" relationships)
             (cons "prune_evaluator" prune-evaluator)
@@ -221,5 +242,37 @@
             (cons "max_depth" max-depth))
            :string)
   (:status-handlers
-   (200 (decode-json-from-string (map 'string #'code-char body)))
+   (200 (decode-neo4j-json-output body))
    (404 (error 'node-not-found-error :uri uri))))
+
+(def-neo4j-fun get-path (node-id to-node-id relationships (max-depth 3) (algorithm :shortest-path))
+  :post
+  (:uri-spec (format nil "node/~A/path" node-id))
+  (:encode (list (list (cons "to" to-node-id) :node-url)
+                 (list (cons "relationships" relationships))
+                 (list (cons "max-depth" max-depth))
+                 (list (cons "algorithm" (case algorithm
+                                           (:shortest-path "shortestPath")
+                                           (:all-paths "allPaths")
+                                           (:all-simple-paths "allSimplePaths")
+                                           (:dijkstra "dijkstra")))))
+           :object)
+  (:status-handlers
+   (200 (decode-neo4j-json-output body))
+   (404 (error 'path-not-found-error :uri uri))))
+
+(def-neo4j-fun get-paths (node-id to-node-id relationships (max-depth 3) (algorithm :shortest-path))
+  :post
+  (:uri-spec (format nil "node/~A/paths" node-id))
+  (:encode (list (list (cons "to" to-node-id) :node-url)
+                 (list (cons "relationships" relationships))
+                 (list (cons "max-depth" max-depth))
+                 (list (cons "algorithm" (case algorithm
+                                           (:shortest-path "shortestPath")
+                                           (:all-paths "allPaths")
+                                           (:all-simple-paths "allSimplePaths")
+                                           (:dijkstra "dijkstra")))))
+           :object)
+  (:status-handlers
+   (200 (decode-neo4j-json-output body))
+   (204 (error 'path-not-found-error :uri uri))))
