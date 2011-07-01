@@ -12,8 +12,8 @@
   :long-description "neo4j RESTful Client Interface."
   :depends-on (:alexandria
                :anaphora
+               :split-sequence
                :drakma
-               :cl-ppcre
                :cl-json)
   :components
   ((:module "src"

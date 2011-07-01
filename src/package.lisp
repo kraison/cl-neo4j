@@ -44,4 +44,5 @@
   (:use #:cl
         #:alexandria
         #:anaphora
+        #:split-sequence
         #:cl-neo4j))
