@@ -199,7 +199,7 @@
 (def-neo4j-fun add-to-index ((type :node) name key value object-id)
   :post
   (:uri-spec (format nil "index/~A/~A/~A/~A" (string-downcase (symbol-name type))
-                     name key value))
+                     name key (urlencode value)))
   (:encode object-id (case type
                        (:node :node-url-single)
                        (:relationship :relationship-url-single)))
@@ -209,7 +209,7 @@
 (def-neo4j-fun remove-from-index ((type :node) name key value object-id)
   :delete
   (:uri-spec (format nil "index/~A/~A/~@[~A/~]~@[~A/~]~A" (string-downcase (symbol-name type))
-                     name key value object-id))
+                     name key (urlencode value) object-id))
   (:status-handlers
    (204 (values t body))
    (404 (error 'index-entry-not-found-error :uri uri))))

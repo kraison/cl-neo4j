@@ -72,3 +72,6 @@
 
 (defun decode-neo4j-json-output (json)
   (decode-json-from-string (map 'string #'code-char json)))
+
+(defun urlencode (string)
+  (cl-ppcre:regex-replace "\\+" (drakma::url-encode string :latin1) "%20"))
