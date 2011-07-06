@@ -36,6 +36,14 @@
            #:traverse
            #:get-path
            #:get-paths
+           ;; Conditions
+           #:unknown-return-type-error
+           #:invalid-data-sent-error
+           #:node-not-found-error
+           #:unable-to-delete-node-error
+           #:relationship-not-found-error
+           #:index-entry-not-found-error
+           #:path-not-found-error
 	   ;; Vars
 	   #:*neo4j-host*
 	   #:*neo4j-port*))
@@ -45,4 +53,36 @@
         #:alexandria
         #:anaphora
         #:split-sequence
-        #:cl-neo4j))
+        #:cl-neo4j)
+  (:export #:node-create
+           #:node-get-by-id
+           #:node-delete
+           #:node-properties
+           #:node-property
+           #:node-relationships
+           #:node-add-to-index
+           #:node-remove-from-index
+           #:node-query-index
+           #:node-traverse
+
+           #:relationship-create
+           #:relationship-get-by-id
+           #:relationship-delete
+           #:relationship-start
+           #:relationship-end
+           #:relationship-type
+           #:relationship-properties
+           #:relationship-property
+           #:relationship-add-to-index
+           #:relationship-remove-from-index
+           #:relationship-query-index
+           #:relationship-traverse
+
+           #:standard-node
+           #:standard-relationship
+
+           #:node-id
+           #:relationship-id
+           ;: Vars
+           #:*default-node-constructor*
+           #:*default-relationship-constructor*))

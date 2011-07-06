@@ -9,12 +9,13 @@
   :author "Kevin Raison <last name @ chatsubo dot net>"
   :version "0.3"
   :description "neo4j RESTful Client Interface"
-  :long-description "neo4j RESTful Client Interface."
+  :long-description "neo4j RESTful Client Interface and higher order extensible CL wrapper for it."
   :depends-on (:alexandria
                :anaphora
                :split-sequence
                :drakma
-               :cl-json)
+               :cl-json
+               :cl-ppcre)
   :components
   ((:module "src"
             :serial t

@@ -1,3 +1,5 @@
+;;; Conditions that low-level REST api throw in default unexpected situations.
+
 (in-package #:cl-neo4j)
 
 (define-condition unknown-return-type-error (error)

@@ -1,3 +1,5 @@
+;;; Low-level REST api for the database. Returns raw unserialized responses.
+
 (in-package #:cl-neo4j)
 
 (def-neo4j-fun get-node (node-id)
@@ -215,16 +217,18 @@
 (def-neo4j-fun lookup-index ((type :node) name key value)
   :get
   (:uri-spec (format nil "index/~A/~A/~A/~A" (string-downcase (symbol-name type))
-                     name key value))
+                     name key (urlencode value)))
   (:status-handlers
-   (200 (decode-neo4j-json-output body))))
+   (200 (decode-neo4j-json-output body))
+   (404 (error 'index-entry-not-found-error :uri uri))))
 
 (def-neo4j-fun query-index ((type :node) name query)
   :get
   (:uri-spec (format nil "index/~A/~A/?query=~A" (string-downcase (symbol-name type))
-                     name query))
+                     name (urlencode query)))
   (:status-handlers
-   (200 (decode-neo4j-json-output body))))
+   (200 (decode-neo4j-json-output body))
+   (404 (error 'index-entry-not-found-error :uri uri))))
 
 (def-neo4j-fun traverse (node-id (return-type :node) (max-depth 1) (order :depth-first)
                          uniqueness relationships prune-evaluator return-filter)

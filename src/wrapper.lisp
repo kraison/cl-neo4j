@@ -1,4 +1,4 @@
-;; Higher lever wrapper for neo4j REST. All functions work with both id's and predefined classes, making it more portable.
+;; Higher lever wrapper for neo4j REST. Users need to define at least node-id and relationship-id accessors for portability + constructors.
 
 (in-package #:cl-neo4j-wrapper)
 
