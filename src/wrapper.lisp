@@ -21,7 +21,7 @@
    properties are plist of node properties.
    initial-connections are list of lists of node (or ids), type and direction that node should be connected to.
    initial-indexes are list of lists of index name, key and value of indexes that node should be added to."
-  (let* ((node (funcall constructor (create-node :properties properties))))
+  (let* ((node (funcall constructor (create-node :properties (plist-alist properties)))))
     (mapc (curry #'apply
                    (lambda (target type direction)
                      (relationship-create node target type :direction direction)))
@@ -38,10 +38,9 @@
 
 (defgeneric node-delete (node &key)
   (:documentation "Deletes a node. Cascade deletes the node even if node had relationships (deleting them too).")
-  (:method :before (node &key cascade)
+  (:method ((node integer) &key cascade)
     (when cascade
-      (mapc #'relationship-delete (node-relationships node))))
-  (:method ((node integer) &key)
+      (mapc #'relationship-delete (node-relationships node)))
     (delete-node :node-id node)))
 
 (defgeneric node-properties (node)
@@ -63,10 +62,9 @@
 
 (defgeneric node-relationships (node &key types direction)
   (:documentation "Returns list of node relations, optionally filtered by list of possible types and direction. This is a factory method, accepts *default-node-constructor*")
-  (:method :around (node &key (constructor *default-node-constructor*) &allow-other-keys)
-    (mapcar constructor (call-next-method)))
-  (:method ((node integer) &key types direction)
-    (get-node-relationships :node-id node :types types :direction direction)))
+  (:method ((node integer) &key (constructor *default-relationship-constructor*) types direction)
+    (mapcar constructor
+            (get-node-relationships :node-id node :types types :direction direction))))
 
 (defgeneric node-add-to-index (node index key value)
   (:documentation "Adds node to index with key and value.")
@@ -90,10 +88,17 @@
   "Returns list of nodes in the index with key and value.
 
   This is a factory method, it accepts keyword argument constructor which is defaulted to *default-node-constructor*"
-  (mapcar constructor (lookup-index :type :node
-                                    :name index
-                                    :key key
-                                    :value value)))
+  (handler-case
+      (mapcar constructor (lookup-index :type :node
+                                        :name index
+                                        :key key
+                                        :value value))
+    (index-entry-not-found-error () nil)))
+
+(defgeneric node-traverse (node &key order uniqueness relationships prune-evaluator return-filter max-depth)
+  (:documentation "")
+  (:method ((node integer) &rest keys &key (constructor *default-node-constructor*) &allow-other-keys)
+    (mapcar constructor (apply #'traverse :node-id node :return-type :node keys))))
 
 ;; Relationships
 
@@ -105,27 +110,25 @@
     properties are plist of relationship properties.
     direction indicates a direction of relation from the point of view of node1.
     initial-indexes are list of lists of index name, key and value of indexes that node should be added to")
-  (:method :around (node1 node2 type &key (constructor *default-relationship-constructor*) properties (direction :from) initial-indexes)
-    (when (eq direction :all)
-      (relationship-create node2 node1 type :properties properties :direction direction :initial-indexes initial-indexes))
-    (funcall constructor (call-next-method node1 node2 type
-                                           :properties properties
-                                           :direction direction
-                                           :initial-indexes initial-indexes)))
-  (:method ((node1 integer) (node2 integer) type &key properties direction initial-indexes)
-    (destructuring-bind (start end)
-        (case direction
-          (:from (list node1 node2))
-          (:to (list node1 node2)))
-      (let ((relationship (create-relationship :node-id start
-                                               :to-node-id end
-                                               :relationship-type type
-                                               :properties properties)))
-        (mapc (curry #'apply
-                     (lambda (index key value)
-                       (relationship-add-to-index relationship index key value)))
-              initial-indexes)
-        relationship))))
+  (:method ((node1 integer) (node2 integer) type &key (constructor *default-relationship-constructor*) properties (direction :from) initial-indexes)
+    (if (eq direction :all)
+        (progn
+          (relationship-create node2 node1 type :properties properties :direction :from :initial-indexes initial-indexes)
+          (relationship-create node1 node2 type :properties properties :direction :from :initial-indexes initial-indexes))
+        (destructuring-bind (start end)
+            (case direction
+              (:from (list node1 node2))
+              (:to (list node1 node2)))
+          (let ((relationship (funcall constructor
+                                       (create-relationship :node-id start
+                                                            :to-node-id end
+                                                            :relationship-type type
+                                                            :properties (plist-alist properties)))))
+            (mapc (curry #'apply
+                         (lambda (index key value)
+                           (relationship-add-to-index relationship index key value)))
+                  initial-indexes)
+            relationship)))))
 
 (defun relationship-get-by-id (id &key (constructor *default-node-constructor*))
   "Returns relationship with given id or nil otherwise."
@@ -191,10 +194,18 @@
 
 (defun relationship-query-index (index key value &key (constructor *default-relationship-constructor*))
   "Returns list of nodes in the index with key and value."
-  (mapcar constructor (lookup-index :type :relationship
-                                    :name index
-                                    :key key
-                                    :value value)))
+  (handler-case
+      (mapcar constructor (lookup-index :type :relationship
+                                        :name index
+                                        :key key
+                                        :value value))
+    (index-entry-not-found-error () nil)))
+
+(defgeneric relationship-traverse (node &key order uniqueness relationships prune-evaluator return-filter max-depth)
+  (:documentation "")
+  (:method ((node integer) &rest keys &key (constructor *default-relationship-constructor*) &allow-other-keys)
+    (mapcar constructor (apply #'traverse :node-id node :return-type :relationship keys))))
+
 
 ;;; Implementation
 
@@ -224,11 +235,11 @@
                  :id (extract-id-from-link (cdr (assoc :self alist)))
                  :properties (normalize-alist (cdr (assoc :data alist)))))
 
-(defmethod node-delete ((node standard-node) &key)
-  (node-delete (node-id node)))
+(defmethod node-delete ((node standard-node) &key cascade)
+  (node-delete (node-id node) :cascade cascade))
 
 (defmethod node-property ((node standard-node) property)
-  (assoc property (node-properties node) :test #'equal))
+  (cdr (assoc property (node-properties node) :test #'equal)))
 
 (defmethod (setf node-property) (value (node standard-node) property)
   (setf (node-property (node-id node) property) value)
@@ -242,6 +253,9 @@
 
 (defmethod node-remove-from-index ((node standard-node) index &optional key value)
   (node-remove-from-index (node-id node) index key value))
+
+(defmethod node-traverse ((node standard-node) &rest keys)
+  (apply #'node-traverse (node-id node) keys))
 
 (defclass standard-relationship ()
   ((id
@@ -276,6 +290,9 @@
                  :start (extract-id-from-link (cdr (assoc :start alist)))
                  :end (extract-id-from-link (cdr (assoc :end alist)))))
 
+(defmethod relationship-create ((node1 standard-node) (node2 standard-node) type &rest keys)
+  (apply #'relationship-create (node-id node1) (node-id node2) type keys))
+
 (defmethod relationship-delete ((relationship standard-relationship))
   (relationship-delete (relationship-id relationship)))
 
@@ -286,7 +303,7 @@
   (node-get-by-id (%relationship-end-id relationship)))
 
 (defmethod relationship-property ((relationship standard-relationship) property)
-  (assoc property (relationship-properties relationship) :test #'equal))
+  (cdr (assoc property (relationship-properties relationship) :test #'equal)))
 
 (defmethod (setf relationship-property) (value (relationship standard-relationship) property)
   (setf (relationship-property (relationship-id relationship) property) value)
@@ -298,3 +315,6 @@
 
 (defmethod relationship-remove-from-index ((relationship standard-relationship) index &optional key value)
   (relationship-remove-from-index (relationship-id relationship) index key value))
+
+(defmethod relationship-traverse ((node standard-node) &rest keys)
+  (apply #'relationship-traverse (node-id node) keys))
