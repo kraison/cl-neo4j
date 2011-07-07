@@ -21,8 +21,14 @@
             :serial t
             :components
             ((:file "package")
-             (:file "globals")
              (:file "utilities")
              (:file "conditions")
+             (:file "requests")
              (:file "restapi")
-             (:file "wrapper")))))
+             (:file "wrapper")
+             #+nil(:module "wrapper"
+                      :serial t
+                      :components
+                      (:file "protocol")
+                      (:file "api")
+                      (:file "standard-classes"))))))

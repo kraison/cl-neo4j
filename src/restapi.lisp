@@ -9,7 +9,7 @@
                  ""))
   (:status-handlers
    (200 (decode-neo4j-json-output body))
-   (404 (error 'node-not-found-error :uri uri :property node-id))))
+   (404 (error 'node-not-found-error :uri uri))))
 
 (def-neo4j-fun create-node (properties)
   :post
@@ -71,7 +71,7 @@
   (:status-handlers
    (200 (decode-neo4j-json-output body))
    (400 (error 'invalid-data-sent-error :uri uri :json json))
-   (404 (error 'property-not-found-error :uri uri :property (list property "node" node-id)))))
+   (404 (error 'property-not-found-error :uri uri))))
 
 (def-neo4j-fun del-node-property (node-id property)
   :delete
@@ -98,7 +98,7 @@
   (:status-handlers
    (201 (decode-neo4j-json-output body))
    (400 (error 'invalid-data-sent-error :uri uri :json json))
-   (404 (error 'node-not-found-error :uri to-node-id))))
+   (404 (error 'node-not-found-error :uri uri))))
 
 (def-neo4j-fun delete-relationship (relationship-id)
   :delete
@@ -148,7 +148,7 @@
   (:status-handlers
    (200 (decode-neo4j-json-output body))
    (400 (error 'invalid-data-sent-error :uri uri :json json))
-   (404 (error 'property-not-found-error :uri uri :property (list property "relationship" relationship-id)))))
+   (404 (error 'property-not-found-error :uri uri))))
 
 (def-neo4j-fun del-relationship-property (relationship-id property)
   :delete

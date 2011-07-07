@@ -1,33 +1,5 @@
 (in-package #:cl-neo4j)
 
-(defmacro def-neo4j-fun (name lambda-list method &rest args)
-  `(progn
-     (defun ,name ,(append '(&key (host *neo4j-host*) (port *neo4j-port*)) lambda-list)
-       (let ((uri (format-neo4j-query host port ,(cadr (assoc :uri-spec args))))
-             (json (encode-neo4j-json-payload ,@(aif (assoc :encode args)
-                                                     (cdr it)
-                                                     (list '() :string)))))
-         (multiple-value-bind (status body)
-             (do-neo4j-query uri ,method :json json)
-           (case status
-             ,@(append (cdr (assoc :status-handlers args))
-                       `((otherwise
-                          (error 'unknown-return-type-error :uri uri :status status
-                                 :property (list ,@(mapcar (lambda (arg) (if (consp arg) (car arg) arg))
-                                                           lambda-list))))))))))))
-
-(defun do-neo4j-query (uri method &key json decode?)
-  (multiple-value-bind (body status headers uri stream must-close reason)
-      (http-request uri
-                    :method method
-                    :content json
-                    :content-type (if json "application/json")
-                    :accept "application/json")
-    (declare (ignore headers uri stream must-close reason))
-    (values status (if (and decode? body)
-                       (decode-neo4j-json-output body)
-                       body))))
-
 (defun format-neo4j-query (host port resource &key (db-postfix "db/data/"))
   (format nil "http://~A:~A/~A~A" host port db-postfix resource))
 

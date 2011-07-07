@@ -7,8 +7,8 @@
    (property :accessor property :initarg :property)
    (status :accessor status :initarg :status))
   (:report (lambda (condition stream)
-             (format stream "Unknown status ~A returned for ~A (~A)"
-                     (status condition) (uri condition) (property condition)))))
+             (format stream "Unknown status ~A returned for ~A"
+                     (status condition) (uri condition)))))
 
 (define-condition invalid-data-sent-error (error)
   ((json :accessor json :initarg :json)
@@ -40,13 +40,10 @@
                  (format stream "Relationship not found ~A" (uri condition))))))
 
 (define-condition property-not-found-error (error)
-  ((uri :accessor uri :initarg :uri)
-   (property :accessor property :initarg :property))
+  ((uri :accessor uri :initarg :uri))
   (:report (lambda (condition stream)
-             (format stream "Property ~A not found for ~A ~A"
-                     (first (property condition))
-                     (second (property condition))
-                     (third (property condition))))))
+             (format stream "Property not found at ~A"
+                     (uri condition)))))
 
 (define-condition index-entry-not-found-error (error)
   ((uri :accessor uri :initarg :uri))
