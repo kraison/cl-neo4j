@@ -14,6 +14,7 @@
                :anaphora
                :split-sequence
                :drakma
+               :babel
                :cl-json
                :cl-ppcre)
   :components
