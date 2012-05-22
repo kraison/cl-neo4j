@@ -134,7 +134,10 @@
 (def-neo4j-fun set-relationship-property (relationship-id property value)
   :put
   (:uri-spec (format nil "relationship/~A/properties/~A"
-                     relationship-id property))
+                     relationship-id
+                     (if (symbolp property)
+                         (string-downcase (symbol-name property))
+                         property)))
   (:encode value :string)
   (:status-handlers
    (204 (values t body))
@@ -144,7 +147,10 @@
 (def-neo4j-fun get-relationship-property (relationship-id property)
   :get
   (:uri-spec (format nil "relationship/~A/properties/~A"
-                     relationship-id property))
+                     relationship-id
+                     (if (symbolp property)
+                         (string-downcase (symbol-name property))
+                         property)))
   (:status-handlers
    (200 (decode-neo4j-json-output body))
    (400 (error 'invalid-data-sent-error :uri uri :json json))
@@ -153,7 +159,10 @@
 (def-neo4j-fun del-relationship-property (relationship-id property)
   :delete
   (:uri-spec (format nil "relationship/~A/properties/~A"
-                     relationship-id property))
+                     relationship-id
+                     (if (symbolp property)
+                         (string-downcase (symbol-name property))
+                         property)))
   (:status-handlers
    (204 (values t body))
    (404 (error 'relationship-not-found-error :uri uri))))
@@ -173,7 +182,7 @@
 
 (def-neo4j-fun get-relationships-types ()
   :get
-  (:uri-spec "relationships/types")
+  (:uri-spec "relationship/types")
   (:status-handlers
    (200 (decode-neo4j-json-output body))))
 

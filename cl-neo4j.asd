@@ -33,3 +33,16 @@
                       (:file "protocol")
                       (:file "api")
                       (:file "standard-classes"))))))
+
+(defsystem cl-neo4j.tests
+  :depends-on  (:cl-neo4j
+                :fiveam)
+  :components
+  ((:module "test"
+            :serial t
+            :components
+            ((:file "package")
+             (:file "util")
+             (:file "main")
+             (:file "rest")
+             (:file "wrapper")))))

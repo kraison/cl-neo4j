@@ -40,6 +40,7 @@
            #:unknown-return-type-error
            #:invalid-data-sent-error
            #:node-not-found-error
+           #:property-not-found-error
            #:unable-to-delete-node-error
            #:relationship-not-found-error
            #:index-entry-not-found-error
