@@ -44,5 +44,5 @@
             ((:file "package")
              (:file "util")
              (:file "main")
-             (:file "rest")
+             (:file "restapi")
              (:file "wrapper")))))
