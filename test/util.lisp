@@ -16,11 +16,12 @@
        (let (,@relation-bindings)
          (unwind-protect
               (progn ,@body)
-           (ignore-errors
-            (mapc (lambda (r) (cl-neo4j:delete-relationship :relationship-id r))
-                  (list ,@(mapcar #'car relations)))
-            (mapc (lambda (n) (cl-neo4j:delete-node :node-id n))
-                  (list ,@nodes))))))))
+           (mapc (lambda (r) (ignore-errors
+                              (cl-neo4j:delete-relationship :relationship-id r)))
+                 (list ,@(mapcar #'car relations)))
+           (mapc (lambda (n) (ignore-errors
+                              (cl-neo4j:delete-node :node-id n)))
+                 (list ,@nodes)))))))
 
 (defun get-id-from-data (data)
   (cl-neo4j-wrapper::extract-id-from-link

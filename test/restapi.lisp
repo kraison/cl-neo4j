@@ -135,12 +135,12 @@
     (is (cl-neo4j:delete-index :name "i1"))))
 
 (test traversal-and-paths
-  (with-test-nodes (a b c d e f) ((ab a b "type1")
-                                  (ac a c "type1")
-                                  (bd b d "type1")
-                                  (be b e "type1")
-                                  (cf c f "type1")
-                                  (fe f e "type1"))
+  (with-test-nodes (a b c d e f) ((ab a b "test1")
+                                  (ac a c "test1")
+                                  (bd b d "test1")
+                                  (be b e "test1")
+                                  (cf c f "test1")
+                                  (fe f e "test1"))
     (is (equal (mapcar #'get-id-from-data
                        (cl-neo4j:traverse :node-id a))
                (list b c)))
