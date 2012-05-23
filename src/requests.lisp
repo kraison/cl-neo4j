@@ -91,26 +91,3 @@
 (defmethod close-handler ((handler basic-handler))
   (declare (ignore handler))
   t)
-
-(defclass batch-handler (basic-handler)
-  ((batch :initform '() :accessor handler-batch)))
-
-(defun batch-handler (&key (host *neo4j-host*) (port *neo4j-port*))
-  (make-instance 'batch-handler :host host :port port))
-
-(defmethod handle-request ((handler batch-handler) request error-handlers)
-  (push (cons request error-handlers) (handler-batch handler)))
-
-(defmethod close-handler ((handler batch-handler))
-  (handle-request (basic-handler :key (handler-host handler) :port (handler-port handler))
-                  (%make-neo4j-request :method :post
-                                       :uri "batch"
-                                       :payload (encode-neo4j-json-payload
-                                                 (mapcar (lambda (request)
-                                                           (list
-                                                            (cons "method" (request-method request))
-                                                            (cons "to" (request-uri request))
-                                                            (cons "body" (request-payload request)))
-                                                           :string)
-                                                         (handler-batch handler))))
-                  (list (list 200 (lambda (bodi uri json) (values t (decode-neo4j-json-output body)))))))
