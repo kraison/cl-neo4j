@@ -98,3 +98,31 @@
          (set-difference (cl-neo4j:get-relationships-types)
                          (list "test" "test2" "test3")
                          :test #'equal)))))
+
+(test indexes)
+
+(test traversal-and-paths
+  (with-test-nodes (a b c d e f) ((ab a b "type1")
+                                  (ac a c "type1")
+                                  (bd b d "type1")
+                                  (be b e "type1")
+                                  (cf c f "type1")
+                                  (fe f e "type1"))
+    (is (equal (mapcar #'get-id-from-data
+                       (cl-neo4j:traverse :node-id a))
+               (list b c)))
+    (is (equal (mapcar #'cl-neo4j-wrapper::extract-id-from-link
+                       (cdr
+                        (assoc :nodes
+                               (cl-neo4j:get-path :node-id a
+                                                  :to-node-id e))))
+               (list a b e)))
+    (is (equal (mapcar (compose (curry #'mapcar #'cl-neo4j-wrapper::extract-id-from-link)
+                                #'cdr
+                                (curry #'assoc :nodes))
+                       (cl-neo4j:get-paths :node-id a
+                                           :to-node-id e
+                                           :max-depth 10
+                                           :algorithm :all-paths))
+               (list (list a b e)
+                     (list a c f e))))))
