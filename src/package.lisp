@@ -43,6 +43,7 @@
            #:property-not-found-error
            #:unable-to-delete-node-error
            #:relationship-not-found-error
+           #:index-not-found-error
            #:index-entry-not-found-error
            #:path-not-found-error
 	   ;; Vars

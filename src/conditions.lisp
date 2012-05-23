@@ -45,6 +45,11 @@
              (format stream "Property not found at ~A"
                      (uri condition)))))
 
+(define-condition index-not-found-error (error)
+  ((uri :accessor uri :initarg :uri))
+  (:report (lambda (condition stream)
+             (format stream "Index not found ~A" (uri condition)))))
+
 (define-condition index-entry-not-found-error (error)
   ((uri :accessor uri :initarg :uri))
   (:report (lambda (condition stream)

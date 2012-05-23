@@ -99,7 +99,40 @@
                          (list "test" "test2" "test3")
                          :test #'equal)))))
 
-(test indexes)
+(test indexes
+  (with-test-nodes (a b) ()
+    (is (cl-neo4j:create-index :name "i1"))
+    (is (cl-neo4j:delete-index :name "i1"))
+    (signals (cl-neo4j:index-not-found-error)
+      (cl-neo4j:delete-index :name "i1"))
+    (is (cl-neo4j:create-index :name "i1"))
+    (is (cl-neo4j:add-to-index :name "i1"
+                               :key "k1"
+                               :value "v1"
+                               :object-id a))
+    (is (cl-neo4j:add-to-index :name "i1"
+                               :key "k1"
+                               :value "v1"
+                               :object-id b))
+    (is (null
+         (set-difference
+          (mapcar #'get-id-from-data
+                  (cl-neo4j:lookup-index :name "i1"
+                                         :key "k1"
+                                         :value "v1"))
+          (list a b))))
+    (is (cl-neo4j:remove-from-index :name "i1"
+                                    :key "k1"
+                                    :value "v1"
+                                    :object-id b))
+    (is (null
+         (set-difference
+          (mapcar #'get-id-from-data
+                  (cl-neo4j:lookup-index :name "i1"
+                                         :key "k1"
+                                         :value "v1"))
+          (list a))))
+    (is (cl-neo4j:delete-index :name "i1"))))
 
 (test traversal-and-paths
   (with-test-nodes (a b c d e f) ((ab a b "type1")

@@ -189,7 +189,7 @@
 (def-neo4j-fun create-index ((type :node) name config)
   :post
   (:uri-spec (format nil "index/~A" (string-downcase (symbol-name type))))
-  (:encode (list (cons "name" name) config) :string)
+  (:encode (cons (cons :name name) config) :string)
   (:status-handlers
    (201 (decode-neo4j-json-output body))))
 
@@ -197,7 +197,8 @@
   :delete
   (:uri-spec (format nil "index/~A/~A" (string-downcase (symbol-name type)) name))
   (:status-handlers
-   (204 (values t body))))
+   (204 (values t body))
+   (404 (error 'index-not-found-error :uri uri))))
 
 (def-neo4j-fun list-indexes ((type :node))
   :get
@@ -207,11 +208,15 @@
 
 (def-neo4j-fun add-to-index ((type :node) name key value object-id)
   :post
-  (:uri-spec (format nil "index/~A/~A/~A/~A" (string-downcase (symbol-name type))
-                     name key (urlencode value)))
-  (:encode object-id (case type
-                       (:node :node-url-single)
-                       (:relationship :relationship-url-single)))
+  (:uri-spec (format nil "index/~A/~A" (string-downcase (symbol-name type))
+                     name))
+  (:encode (list (list (cons :uri object-id)
+                       (case type
+                         (:node :node-url)
+                         (:relationship :relationship-url)))
+                 (list (cons :key key))
+                 (list (cons :value value)))
+           :object)
   (:status-handlers
    (201 (decode-neo4j-json-output body))))
 
