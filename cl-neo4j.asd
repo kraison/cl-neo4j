@@ -7,7 +7,7 @@
   :name "neo4j RESTful Client Interface ()"
   :maintainer "Mikhail Novikov <freiksenet@gmail.com>"
   :author "Kevin Raison <last name @ chatsubo dot net>"
-  :version "0.3"
+  :version "0.4"
   :description "neo4j RESTful Client Interface"
   :long-description "neo4j RESTful Client Interface and higher order extensible CL wrapper for it."
   :depends-on (:alexandria
@@ -26,13 +26,7 @@
              (:file "conditions")
              (:file "requests")
              (:file "restapi")
-             (:file "wrapper")
-             #+nil(:module "wrapper"
-                      :serial t
-                      :components
-                      (:file "protocol")
-                      (:file "api")
-                      (:file "standard-classes"))))))
+             (:file "wrapper")))))
 
 (defsystem cl-neo4j.tests
   :depends-on  (:cl-neo4j
