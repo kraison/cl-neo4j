@@ -263,7 +263,7 @@
   (:uri-spec (format nil "node/~A/path" node-id))
   (:encode (list (list (cons "to" to-node-id) :node-url)
                  (list (cons "relationships" relationships))
-                 (list (cons "max-depth" max-depth))
+                 (list (cons "max_depth" max-depth))
                  (list (cons "algorithm" (case algorithm
                                            (:shortest-path "shortestPath")
                                            (:all-paths "allPaths")
@@ -279,7 +279,7 @@
   (:uri-spec (format nil "node/~A/paths" node-id))
   (:encode (list (list (cons "to" to-node-id) :node-url)
                  (list (cons "relationships" relationships))
-                 (list (cons "max-depth" max-depth))
+                 (list (cons "max_depth" max-depth))
                  (list (cons "algorithm" (case algorithm
                                            (:shortest-path "shortestPath")
                                            (:all-paths "allPaths")

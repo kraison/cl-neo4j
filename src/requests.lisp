@@ -86,7 +86,7 @@
                   (request-payload request))
          (error 'unknown-return-type-error
                 :uri (request-uri request)
-                :status (status request)))))
+                :status status))))
 
 (defmethod close-handler ((handler basic-handler))
   (declare (ignore handler))
