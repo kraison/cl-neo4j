@@ -22,11 +22,12 @@
             :serial t
             :components
             ((:file "package")
-             (:file "utilities")
-             (:file "conditions")
-             (:file "requests")
-             (:file "restapi")
-             (:file "wrapper")))))
+             (:file "globals" :depends-on ("package"))
+             (:file "utilities" :depends-on ("globals"))
+             (:file "conditions" :depends-on ("utilities"))
+             (:file "requests" :depends-on ("conditions"))
+             (:file "restapi" :depends-on ("requests"))
+             (:file "wrapper" :depends-on ("restapi"))))))
 
 (defsystem cl-neo4j.tests
   :depends-on  (:cl-neo4j
