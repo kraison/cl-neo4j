@@ -48,7 +48,10 @@
            #:path-not-found-error
 	   ;; Vars
 	   #:*neo4j-host*
-	   #:*neo4j-port*))
+	   #:*neo4j-port*
+	   #:*neo4j-user*
+	   #:*neo4j-pass*
+           ))
 
 (defpackage #:cl-neo4j-wrapper
   (:use #:cl

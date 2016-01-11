@@ -2,9 +2,11 @@
 
 (in-package :cl-neo4j)
 
-(defmacro with-neo4j-database ((host port) &rest body)
+(defmacro with-neo4j-database ((host port user pass) &rest body)
   `(let ((*neo4j-host* ,host)
-         (*neo4j-port* ,port))
+         (*neo4j-port* ,port)
+         (*neo4j-user* ,user)
+         (*neo4j-pass* ,pass))
      ,@body))
 
 (defmacro with-request-handler (handler &body body)
@@ -54,11 +56,18 @@
 
 (defclass basic-handler ()
   ((host :initarg :host :accessor handler-host)
-   (port :initarg :port :accessor handler-port))
+   (port :initarg :port :accessor handler-port)
+   (user :initarg :user :accessor handler-user)
+   (pass :initarg :pass :accessor handler-pass))
   (:documentation "Basic handler that just sends request to the database."))
 
-(defun basic-handler (&key (host *neo4j-host*) (port *neo4j-port*))
-  (make-instance 'basic-handler :host host :port port))
+(defun basic-handler (&key (host *neo4j-host*) (port *neo4j-port*)
+                        (user *neo4j-user*) (pass *neo4j-pass*))
+  (make-instance 'basic-handler
+                 :host host
+                 :port port
+                 :user user
+                 :pass pass))
 
 (defmethod send-request ((handler basic-handler) request)
   (with-accessors ((method request-method) (uri request-uri) (payload request-payload))
@@ -68,6 +77,8 @@
                                           (handler-port handler)
                                           uri)
                       :method method
+                      :basic-authorization (list (handler-user handler)
+                                                 (handler-pass handler))
                       :content payload
                       :content-type (if payload "application/json")
                       :accept "application/json")
