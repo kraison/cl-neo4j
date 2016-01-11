@@ -186,6 +186,14 @@
   (:status-handlers
    (200 (decode-neo4j-json-output body))))
 
+(def-neo4j-fun cypher-query (statements)
+  :post
+  (:uri-spec "transaction/commit")
+  (:encode statements :statements)
+  (:status-handlers
+   (200 (decode-neo4j-json-output body))
+   (404 (error 'node-not-found-error :uri uri))))
+
 (def-neo4j-fun create-index ((type :node) name config)
   :post
   (:uri-spec (format nil "index/~A" (string-downcase (symbol-name type))))

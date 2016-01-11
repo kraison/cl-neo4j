@@ -25,7 +25,8 @@
              (:file "globals" :depends-on ("package"))
              (:file "utilities" :depends-on ("globals"))
              (:file "conditions" :depends-on ("utilities"))
-             (:file "requests" :depends-on ("conditions"))
+             (:file "query" :depends-on ("utilities"))
+             (:file "requests" :depends-on ("conditions" "query"))
              (:file "restapi" :depends-on ("requests"))
              (:file "wrapper" :depends-on ("restapi"))))))
 
