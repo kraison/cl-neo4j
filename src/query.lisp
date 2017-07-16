@@ -17,3 +17,16 @@
                           :statement statement
                           :properties properties)))
     q))
+
+(defmethod encode-neo4j-json-payload ((object cypher-query) (encode-type (eql :statement)) &key)
+  (declare (ignore encode-type))
+  (encode-cypher-query object))
+
+(defmethod encode-neo4j-json-payload (object (encode-type (eql :statements)) &key)
+  (declare (ignore encode-type))
+  (let ((table (make-hash-table :test 'equalp)))
+    (setf (gethash "statements" table)
+          (mapcar (lambda (statement)
+                    (structure-cypher-query statement))
+                  object))
+    (encode-neo4j-json-payload table :table)))
